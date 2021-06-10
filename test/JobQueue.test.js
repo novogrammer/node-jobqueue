@@ -60,8 +60,10 @@ describe("JobQueue",()=>{
       progress="done";
     });
     expect(progress).toBe("ready");
+    expect(job.promise.isPending()).toBe(true);
     job.start();
     await job.promise;
+    expect(job.promise.isFulfilled()).toBe(true);
     expect(progress).toBe("done");
     jobQueue.destroy();
   });
@@ -73,8 +75,12 @@ describe("JobQueue",()=>{
       progress="done";
     });
     expect(progress).toBe("ready");
+    expect(job.promise.isPending()).toBe(true);
     job.abort();
-    expect(job.promise).rejects.toBe(undefined);
+    //非同期に解決されるため
+    await mySleep(0.1);
+    expect(job.promise.isRejected()).toBe(true);
+    expect(job.promise).rejects.toThrow();
     expect(progress).toBe("ready");
     jobQueue.destroy();
   });
