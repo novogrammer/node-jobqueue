@@ -1,4 +1,5 @@
 import Deferred from "./Deferred.js";
+import Promise from "bluebird";
 
 const JOB_INTERVAL=0.01;
 const JOB_THREADS_SIZE=10;
@@ -56,7 +57,8 @@ export default class JobQueue{
       await deferred.promise;
       return await taskAsync();
     }
-    const promise = taskWrapperAsync();
+    //bluebirdのPromiseを使う
+    const promise = Promise.all([taskWrapperAsync()]);
 
     const job={
       start:deferred.resolve,
