@@ -1,5 +1,5 @@
-import Deferred from "./Deferred.js";
-import Promise from "bluebird";
+import Promise from 'bluebird';
+import Deferred from './Deferred';
 
 const JOB_INTERVAL = 0.01;
 const JOB_THREADS_SIZE = 10;
@@ -12,6 +12,7 @@ export default class JobQueue {
     this.needsStop = false;
     this.setup();
   }
+
   setup() {
     const tick = async () => {
       if (!this.needsStop) {
@@ -23,30 +24,34 @@ export default class JobQueue {
     };
     tick();
   }
+
   abortAll() {
-    for (let job of this.queue) {
-      job.abort(new Error("中断"));
-    }
+    this.queue.forEach((job) => {
+      job.abort(new Error('中断'));
+    });
   }
+
   destroy() {
     this.needsStop = true;
     this.abortAll();
   }
+
   async onTickAsync() {
-    if (0 < this.queue.length) {
+    if (this.queue.length > 0) {
       const threadsSize = Math.min(this.threadsSize, this.queue.length);
-      //非同期関数を先にスタートさせることで並列化する
-      for (let i = 0; i < threadsSize; ++i) {
+      // 非同期関数を先にスタートさせることで並列化する
+      for (let i = 0; i < threadsSize; i += 1) {
         const job = this.queue[i];
         job.start();
-
       }
       let i = this.queue.length;
+      // eslint-disable-next-line no-plusplus
       while (i--) {
         const job = this.queue[i];
-        //bluebirdのisPendingを使ってovertake可能にする
+        // bluebirdのisPendingを使ってovertake可能にする
         if (!job.promise.isPending()) {
           try {
+            // eslint-disable-next-line no-await-in-loop
             await job.promise;
           } catch (error) {
             console.error(error.toString());
@@ -56,23 +61,25 @@ export default class JobQueue {
       }
     }
   }
+
+  // eslint-disable-next-line class-methods-use-this
   makeJob(taskAsync) {
     const deferred = new Deferred();
 
     const taskWrapperAsync = async () => {
       await deferred.promise;
-      return await taskAsync();
-    }
-    //bluebirdのPromiseを使う
+      const result = await taskAsync();
+      return result;
+    };
+    // bluebirdのPromiseを使う
     const promise = Promise.all([taskWrapperAsync()]);
 
     const job = {
       start: deferred.resolve,
       abort: deferred.reject,
       promise,
-    }
+    };
 
     return job;
   }
-
 }

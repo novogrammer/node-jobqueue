@@ -5,7 +5,7 @@ module.exports = {
   },
   extends: [
     'airbnb-base',
-    //'plugin:prettier/recommended',
+    // 'plugin:prettier/recommended',
   ],
   plugins: [
     'prettier',
@@ -19,17 +19,17 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    "no-console": 0,
-    "arrow-parens": ["error", "always"],
+    'no-console': 0,
+    'arrow-parens': ['error', 'always'],
     yoda: [
-      "error",
-      "never",
+      'error',
+      'never',
       {
-        "exceptRange": true
+        exceptRange: true,
       },
     ],
-    "import/prefer-default-export": 0,
-    "func-names": 0,
-    "no-param-reassign": 0,
+    'import/prefer-default-export': 0,
+    'func-names': 0,
+    'no-param-reassign': 0,
   },
 };

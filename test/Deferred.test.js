@@ -1,17 +1,17 @@
-import Deferred from "../src/Deferred.js";
+/* eslint-disable no-undef */
+import Deferred from '../src/Deferred';
 
-describe("Deferred", () => {
-  test("resolve", () => {
+describe('Deferred', () => {
+  test('resolve', () => {
     const deferred = new Deferred();
     expect(deferred.promise.isPending()).toBe(true);
     deferred.resolve(123);
     expect(deferred.promise.isFulfilled()).toBe(true);
     expect(deferred.promise).resolves.toBe(123);
-
   });
-  test("reject", () => {
+  test('reject', () => {
     const deferred = new Deferred();
-    const error = new Error("abc");
+    const error = new Error('abc');
     expect(deferred.promise.isPending()).toBe(true);
     deferred.reject(error);
     expect(deferred.promise.isRejected()).toBe(true);
