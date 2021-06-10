@@ -11,13 +11,10 @@ var _Deferred = _interopRequireDefault(require("./Deferred"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const JOB_INTERVAL = 0.01;
-const JOB_THREADS_SIZE = 10;
-
 class JobQueue {
   constructor({
-    interval = JOB_INTERVAL,
-    threadsSize = JOB_THREADS_SIZE,
+    interval = 0.01,
+    threadsSize = 10,
     paused = false
   } = {}) {
     this.interval = interval;
