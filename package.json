@@ -6,7 +6,7 @@
   "scripts": {
     "eslint": "eslint --fix src/**/*.js test/**/*.js",
     "build": "babel src -d dist",
-    "start": "node -r @babel/register ./src/index.js",
+    "start": "npm run eslint && npm run test && npm run build",
     "test": "jest"
   },
   "keywords": [],
