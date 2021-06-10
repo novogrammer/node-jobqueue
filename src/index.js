@@ -4,19 +4,30 @@ import JobQueue from "./lib/JobQueue.js";
 const mySleep=(time)=>new Promise((resolve)=>setTimeout(resolve,time*1000));
 const jobQueue=new JobQueue();
 
-{
+
+const addJob=(id,time)=>{
   const task=jobQueue.makeJob(async ()=>{
-    console.log("before");
-    await mySleep(1);
-    console.log("after");
+    console.log("before id:"+id);
+    await mySleep(time);
+    console.log("after id:"+id);
   });
   jobQueue.queue.push(task);
 }
+async function main(){
+  for(let i=0;i<20;++i){
+    addJob(i,1);
+  }
+  const promises=jobQueue.queue.map((job)=>job.promise);
+  console.log("begin wait");
+  await Promise.all(promises);
+  console.log("end wait");
 
-
-setTimeout(()=>{
   jobQueue.destroy();
+  
+}
 
-},1000*2);
+main();
+
+
 
 
