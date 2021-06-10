@@ -1,11 +1,8 @@
 import Promise from 'bluebird';
 import Deferred from './Deferred';
 
-const JOB_INTERVAL = 0.01;
-const JOB_THREADS_SIZE = 10;
-
 export default class JobQueue {
-  constructor({ interval = JOB_INTERVAL, threadsSize = JOB_THREADS_SIZE, paused = false } = {}) {
+  constructor({ interval = 0.01, threadsSize = 10, paused = false } = {}) {
     this.interval = interval;
     this.threadsSize = threadsSize;
     this.queue = [];
