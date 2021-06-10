@@ -1,4 +1,4 @@
-import Deferred from "../src/lib/Deferred.js";
+import Deferred from "../src/Deferred.js";
 
 describe("Deferred",()=>{
   test("resolve",()=>{

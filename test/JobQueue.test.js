@@ -1,5 +1,5 @@
 
-import JobQueue from "../src/lib/JobQueue.js";
+import JobQueue from "../src/JobQueue.js";
 const performance = require('perf_hooks').performance;
 
 const mySleep=(time)=>new Promise((resolve)=>setTimeout(resolve,time*1000));

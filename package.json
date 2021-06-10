@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "build": "browserify ./src/index.js -o ./dist/index.js -t babelify",
+    "build": "babel src -d lib",
     "start": "node -r @babel/register ./src/index.js",
     "test": "jest"
   },
