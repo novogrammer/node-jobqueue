@@ -107,7 +107,17 @@ describe('JobQueue', () => {
     expect(progress).toBe('ready');
     jobQueue.destroy();
   });
-
+  test('joinAsync', async () => {
+    const jobQueue = new JobQueue();
+    const beginTime = performance.now() / 1000;
+    jobQueue.addJobFromTask(async () => {
+      await mySleep(1);
+    });
+    await jobQueue.joinAsync();
+    const endTime = performance.now() / 1000;
+    expect(endTime - beginTime).toBeCloseTo(1, 0);
+    jobQueue.destroy();
+  });
   test('threadsSize 1', async () => {
     const jobQueue = new JobQueue({ threadsSize: 1 });
     const beginTime = performance.now() / 1000;
@@ -116,8 +126,7 @@ describe('JobQueue', () => {
         await mySleep(0.5);
       });
     }
-    const promises = jobQueue.queue.map((job) => job.promise);
-    await Promise.all(promises);
+    await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(2, 0);
     jobQueue.destroy();
@@ -130,8 +139,7 @@ describe('JobQueue', () => {
         await mySleep(0.5);
       });
     }
-    const promises = jobQueue.queue.map((job) => job.promise);
-    await Promise.all(promises);
+    await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 0);
     jobQueue.destroy();
@@ -148,8 +156,7 @@ describe('JobQueue', () => {
         }
       });
     }
-    const promises = jobQueue.queue.map((job) => job.promise);
-    await Promise.all(promises);
+    await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 0);
     jobQueue.destroy();

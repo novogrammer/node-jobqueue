@@ -92,4 +92,9 @@ export default class JobQueue {
     const job = this.makeJob(taskAsync);
     return this.addJob(job);
   }
+
+  joinAsync() {
+    const promises = this.queue.map((job) => job.promise);
+    return Promise.all(promises);
+  }
 }

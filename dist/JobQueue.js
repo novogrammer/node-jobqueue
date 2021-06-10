@@ -110,6 +110,11 @@ class JobQueue {
     return this.addJob(job);
   }
 
+  joinAsync() {
+    const promises = this.queue.map(job => job.promise);
+    return _bluebird.default.all(promises);
+  }
+
 }
 
 exports.default = JobQueue;
