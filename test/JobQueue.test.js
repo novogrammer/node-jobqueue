@@ -115,5 +115,24 @@ describe("JobQueue",()=>{
     expect(endTime-beginTime).toBeCloseTo(1,0);
     jobQueue.destroy();
   });
+  test("threadsSize 2 overtake",async ()=>{
+    const jobQueue=new JobQueue({threadsSize:2});
+    const beginTime=performance.now()/1000;
+    for(let i=0;i<4;++i){
+      const job=jobQueue.makeJob(async ()=>{
+        if(i%2==0){
+          await mySleep(1);
+        }else{
+          await mySleep(0);
+        }
+      });
+      jobQueue.queue.push(job);
+    }
+    const promises=jobQueue.queue.map((job)=>job.promise);
+    await Promise.all(promises);
+    const endTime=performance.now()/1000;
+    expect(endTime-beginTime).toBeCloseTo(1,0);
+    jobQueue.destroy();
+  });
 
 });
