@@ -54,10 +54,10 @@ describe('JobQueue', () => {
       await mySleep(1);
       progress = 'done';
     });
-    expect(jobQueue.needsStop).toBeFalsy();
+    expect(jobQueue.paused).toBe(false);
     jobQueue.abortAll();
     expect(job.promise).rejects.toThrow();
-    expect(jobQueue.needsStop).toBeFalsy();
+    expect(jobQueue.paused).toBe(false);
     expect(progress).toBe('ready');
     jobQueue.destroy();
   });
@@ -69,10 +69,10 @@ describe('JobQueue', () => {
       progress = 'done';
     });
     jobQueue.queue.push(job);
-    expect(jobQueue.needsStop).toBeFalsy();
+    expect(jobQueue.paused).toBe(false);
     jobQueue.destroy();
     expect(job.promise).rejects.toThrow();
-    expect(jobQueue.needsStop).toBeTruthy();
+    expect(jobQueue.paused).toBe(true);
     expect(progress).toBe('ready');
   });
   test('makeJob start', async () => {
@@ -159,6 +159,38 @@ describe('JobQueue', () => {
     await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 0);
+    jobQueue.destroy();
+  });
+  test('start', async () => {
+    const jobQueue = new JobQueue({ paused: true });
+    expect(jobQueue.paused).toBe(true);
+    let progress = 'ready';
+    jobQueue.addJobFromTask(() => {
+      progress = 'done';
+    });
+    await mySleep(0.1);
+    expect(progress).toBe('ready');
+    jobQueue.start();
+    expect(jobQueue.paused).toBe(false);
+    await jobQueue.joinAsync();
+    expect(progress).toBe('done');
+    jobQueue.destroy();
+  });
+  test('stop', async () => {
+    const jobQueue = new JobQueue();
+    expect(jobQueue.paused).toBe(false);
+    jobQueue.stop();
+    expect(jobQueue.paused).toBe(true);
+    let progress = 'ready';
+    jobQueue.addJobFromTask(() => {
+      progress = 'done';
+    });
+    await mySleep(0.1);
+    expect(progress).toBe('ready');
+    jobQueue.start();
+    expect(jobQueue.paused).toBe(false);
+    await jobQueue.joinAsync();
+    expect(progress).toBe('done');
     jobQueue.destroy();
   });
 });

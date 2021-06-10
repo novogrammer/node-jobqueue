@@ -5,24 +5,30 @@ const JOB_INTERVAL = 0.01;
 const JOB_THREADS_SIZE = 10;
 
 export default class JobQueue {
-  constructor({ interval = JOB_INTERVAL, threadsSize = JOB_THREADS_SIZE } = {}) {
+  constructor({ interval = JOB_INTERVAL, threadsSize = JOB_THREADS_SIZE, paused = false } = {}) {
     this.interval = interval;
     this.threadsSize = threadsSize;
     this.queue = [];
-    this.needsStop = false;
-    this.setup();
+    this.paused = true;
+    this.timeoutId = null;
+    if (!paused) {
+      this.start();
+    }
   }
 
-  setup() {
-    const tick = async () => {
-      if (!this.needsStop) {
-        await this.onTickAsync();
-      }
-      if (!this.needsStop) {
-        this.timeoutId = setTimeout(tick, 1000 * this.interval);
-      }
-    };
-    tick();
+  start() {
+    if (this.paused) {
+      this.paused = false;
+      const tick = async () => {
+        if (!this.paused) {
+          await this.onTickAsync();
+        }
+        if (!this.paused) {
+          this.timeoutId = setTimeout(tick, 1000 * this.interval);
+        }
+      };
+      tick();
+    }
   }
 
   abortAll() {
@@ -31,9 +37,17 @@ export default class JobQueue {
     });
   }
 
+  stop() {
+    if (!this.paused) {
+      this.paused = true;
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  }
+
   destroy() {
-    this.needsStop = true;
     this.abortAll();
+    this.stop();
   }
 
   async onTickAsync() {
