@@ -82,4 +82,14 @@ export default class JobQueue {
 
     return job;
   }
+
+  addJob(job) {
+    this.queue.push(job);
+    return job;
+  }
+
+  addJobFromTask(taskAsync) {
+    const job = this.makeJob(taskAsync);
+    return this.addJob(job);
+  }
 }

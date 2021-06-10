@@ -5,9 +5,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _Deferred = _interopRequireDefault(require("./Deferred.js"));
-
 var _bluebird = _interopRequireDefault(require("bluebird"));
+
+var _Deferred = _interopRequireDefault(require("./Deferred"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -41,9 +41,9 @@ class JobQueue {
   }
 
   abortAll() {
-    for (let job of this.queue) {
-      job.abort(new Error("中断"));
-    }
+    this.queue.forEach(job => {
+      job.abort(new Error('中断'));
+    });
   }
 
   destroy() {
@@ -52,21 +52,22 @@ class JobQueue {
   }
 
   async onTickAsync() {
-    if (0 < this.queue.length) {
-      const threadsSize = Math.min(this.threadsSize, this.queue.length); //非同期関数を先にスタートさせることで並列化する
+    if (this.queue.length > 0) {
+      const threadsSize = Math.min(this.threadsSize, this.queue.length); // 非同期関数を先にスタートさせることで並列化する
 
-      for (let i = 0; i < threadsSize; ++i) {
+      for (let i = 0; i < threadsSize; i += 1) {
         const job = this.queue[i];
         job.start();
       }
 
-      let i = this.queue.length;
+      let i = this.queue.length; // eslint-disable-next-line no-plusplus
 
       while (i--) {
-        const job = this.queue[i]; //bluebirdのisPendingを使ってovertake可能にする
+        const job = this.queue[i]; // bluebirdのisPendingを使ってovertake可能にする
 
         if (!job.promise.isPending()) {
           try {
+            // eslint-disable-next-line no-await-in-loop
             await job.promise;
           } catch (error) {
             console.error(error.toString());
@@ -76,15 +77,17 @@ class JobQueue {
         }
       }
     }
-  }
+  } // eslint-disable-next-line class-methods-use-this
+
 
   makeJob(taskAsync) {
     const deferred = new _Deferred.default();
 
     const taskWrapperAsync = async () => {
       await deferred.promise;
-      return await taskAsync();
-    }; //bluebirdのPromiseを使う
+      const result = await taskAsync();
+      return result;
+    }; // bluebirdのPromiseを使う
 
 
     const promise = _bluebird.default.all([taskWrapperAsync()]);
@@ -95,6 +98,16 @@ class JobQueue {
       promise
     };
     return job;
+  }
+
+  addJob(job) {
+    this.queue.push(job);
+    return job;
+  }
+
+  addJobFromTask(taskAsync) {
+    const job = this.makeJob(taskAsync);
+    return this.addJob(job);
   }
 
 }

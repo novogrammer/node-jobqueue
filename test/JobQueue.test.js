@@ -10,11 +10,10 @@ describe('JobQueue', () => {
     const jobQueue = new JobQueue();
     let progress = 'ready';
     const beginTime = performance.now() / 1000;
-    const job = jobQueue.makeJob(async () => {
+    const job = jobQueue.addJobFromTask(async () => {
       await mySleep(1);
       progress = 'done';
     });
-    jobQueue.queue.push(job);
     expect(progress).toBe('ready');
     await job.promise;
     expect(progress).toBe('done');
@@ -22,14 +21,39 @@ describe('JobQueue', () => {
     expect(endTime - beginTime).toBeCloseTo(1, 1);
     jobQueue.destroy();
   });
-  test('abortAll', async () => {
+  test('add job', () => {
     const jobQueue = new JobQueue();
-    let progress = 'ready';
+    // stop execution
+    jobQueue.destroy();
     const job = jobQueue.makeJob(async () => {
       await mySleep(1);
       progress = 'done';
     });
-    jobQueue.queue.push(job);
+    expect(jobQueue.queue.length).toBe(0);
+    expect(jobQueue.addJob(job)).toBe(job);
+    expect(jobQueue.queue.length).toBe(1);
+    expect(jobQueue.queue[0]).toBe(job);
+  });
+  test('add job from task', () => {
+    const jobQueue = new JobQueue();
+    // stop execution
+    jobQueue.destroy();
+    expect(jobQueue.queue.length).toBe(0);
+    const job = jobQueue.addJobFromTask(async () => {
+      await mySleep(1);
+      progress = 'done';
+    });
+    expect(job).not.toBeNull();
+    expect(jobQueue.queue.length).toBe(1);
+    expect(jobQueue.queue[0]).toBe(job);
+  });
+  test('abortAll', async () => {
+    const jobQueue = new JobQueue();
+    let progress = 'ready';
+    const job = jobQueue.addJobFromTask(async () => {
+      await mySleep(1);
+      progress = 'done';
+    });
     expect(jobQueue.needsStop).toBeFalsy();
     jobQueue.abortAll();
     expect(job.promise).rejects.toThrow();
@@ -88,10 +112,9 @@ describe('JobQueue', () => {
     const jobQueue = new JobQueue({ threadsSize: 1 });
     const beginTime = performance.now() / 1000;
     for (let i = 0; i < 4; i += 1) {
-      const job = jobQueue.makeJob(async () => {
+      jobQueue.addJobFromTask(async () => {
         await mySleep(0.5);
       });
-      jobQueue.queue.push(job);
     }
     const promises = jobQueue.queue.map((job) => job.promise);
     await Promise.all(promises);
@@ -103,10 +126,9 @@ describe('JobQueue', () => {
     const jobQueue = new JobQueue({ threadsSize: 2 });
     const beginTime = performance.now() / 1000;
     for (let i = 0; i < 4; i += 1) {
-      const job = jobQueue.makeJob(async () => {
+      jobQueue.addJobFromTask(async () => {
         await mySleep(0.5);
       });
-      jobQueue.queue.push(job);
     }
     const promises = jobQueue.queue.map((job) => job.promise);
     await Promise.all(promises);
@@ -118,14 +140,13 @@ describe('JobQueue', () => {
     const jobQueue = new JobQueue({ threadsSize: 2 });
     const beginTime = performance.now() / 1000;
     for (let i = 0; i < 4; i += 1) {
-      const job = jobQueue.makeJob(async () => {
+      jobQueue.addJobFromTask(async () => {
         if (i % 2 === 0) {
           await mySleep(1);
         } else {
           await mySleep(0);
         }
       });
-      jobQueue.queue.push(job);
     }
     const promises = jobQueue.queue.map((job) => job.promise);
     await Promise.all(promises);
