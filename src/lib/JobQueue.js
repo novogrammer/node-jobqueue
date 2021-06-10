@@ -41,12 +41,18 @@ export default class JobQueue{
         job.start();
 
       }
-      const job=this.queue.shift();
-      try{
-        //並列化されているが、順番にjoinしていく
-        await job.promise;
-      }catch(error){
-        console.error(error.toString());
+      let i=this.queue.length;
+      while(i--){
+        const job=this.queue[i];
+          //bluebirdのisPendingを使ってovertake可能にする
+          if(!job.promise.isPending()){
+          try{
+            await job.promise;
+          }catch(error){
+            console.error(error.toString());
+          }
+          this.queue.splice(i,1);
+        }
       }
     }
   }
