@@ -4,8 +4,9 @@ const JOB_INTERVAL=0.01;
 const JOB_THREADS_SIZE=10;
 
 export default class JobQueue{
-  constructor(interval=JOB_INTERVAL){
+  constructor({interval=JOB_INTERVAL,threadsSize=JOB_THREADS_SIZE}={}){
     this.interval=interval;
+    this.threadsSize=threadsSize;
     this.queue=[];
     this.needsStop=false;
     this.setup();
@@ -32,9 +33,9 @@ export default class JobQueue{
   }
   async onTickAsync(){
     if(0<this.queue.length){
-      const threadSize=Math.min(JOB_THREADS_SIZE,this.queue.length);
+      const threadsSize=Math.min(this.threadsSize,this.queue.length);
         //非同期関数を先にスタートさせることで並列化する
-        for(let i=0;i<threadSize;++i){
+        for(let i=0;i<threadsSize;++i){
         const job=this.queue[i];
         job.start();
 
@@ -65,11 +66,5 @@ export default class JobQueue{
 
     return job;
   }
-  sleep(time){
-    const job=this.makeJob(async ()=>{
-      await new Promise((resolve)=>setTimeout(resolve,1000*time));
-    });
 
-    this.queue.push(job);
-  }
 }
