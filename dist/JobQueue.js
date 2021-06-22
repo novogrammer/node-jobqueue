@@ -24,25 +24,14 @@ class JobQueue {
     this.timeoutId = null;
 
     if (!paused) {
-      this.start();
+      this.resume();
     }
   }
 
-  start() {
+  resume() {
     if (this.paused) {
       this.paused = false;
-
-      const tick = async () => {
-        if (!this.paused) {
-          await this.onTickAsync();
-        }
-
-        if (!this.paused) {
-          this.timeoutId = setTimeout(tick, 1000 * this.interval);
-        }
-      };
-
-      tick();
+      this.activateTimerIf();
     }
   }
 
@@ -52,17 +41,12 @@ class JobQueue {
     });
   }
 
-  stop() {
+  pause() {
     if (!this.paused) {
       this.paused = true;
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
-  }
-
-  destroy() {
-    this.abortAll();
-    this.stop();
   }
 
   async onTickAsync() {
@@ -104,7 +88,7 @@ class JobQueue {
     }; // bluebirdのPromiseを使う
 
 
-    const promise = _bluebird.default.all([taskWrapperAsync()]);
+    const promise = _bluebird.default.resolve(taskWrapperAsync());
 
     const job = {
       start: deferred.resolve,
@@ -114,8 +98,29 @@ class JobQueue {
     return job;
   }
 
+  activateTimerIf() {
+    const needsNextTick = () => this.queue.length > 0 && !this.paused && !this.timeoutId;
+
+    const tick = async () => {
+      this.timeoutId = null;
+
+      if (!this.paused) {
+        await this.onTickAsync();
+      }
+
+      if (needsNextTick()) {
+        this.timeoutId = setTimeout(tick, 1000 * this.interval);
+      }
+    };
+
+    if (needsNextTick()) {
+      this.timeoutId = setTimeout(tick, 0);
+    }
+  }
+
   addJob(job) {
     this.queue.push(job);
+    this.activateTimerIf();
     return job;
   }
 
