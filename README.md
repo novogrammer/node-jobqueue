@@ -30,3 +30,7 @@ main();
 constructor({ interval = 0.01, threadsSize = 10, paused = false } = {})
 ```
 
+## 状態遷移図
+
+![JobQueue](./uml/JobQueue.png)
+

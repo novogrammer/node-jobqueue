@@ -1,0 +1,47 @@
+@startuml JobQueue
+scale 600*400
+
+[*] --> JobQueue
+
+state JobQueue{
+  state oninitialize<<choice>>
+
+  [*] --> oninitialize
+  oninitialize --> Paused: [start with paused]
+  oninitialize --> NotPaused: [start with not paused]
+
+  Paused -right-> NotPaused: resume()
+  NotPaused -left-> Paused: pause()
+
+  ||
+
+  [*] --> NoJobs
+  NoJobs -right-> AnyJobs: [not empty]
+  AnyJobs -left-> NoJobs: [empty]
+
+  NoJobs --> [*]: exit()
+  AnyJobs --> [*]: exit()
+
+  state AnyJobs{
+    state canExecute<<choice>>
+    [*] --> canExecute
+    canExecute --> Executing: [NotPaused]
+    canExecute --> WaitForStart: [Paused]
+    Executing -right-> WaitForTimer
+    Executing -left-> WaitForStart: [Paused]
+    WaitForStart -right-> Executing: [NotPaused]
+    WaitForTimer -right-> Executing
+    Executing --> [*]: [empty]
+    WaitForStart --> [*]: exit()
+  }
+
+
+
+
+}
+
+
+
+
+
+@enduml
