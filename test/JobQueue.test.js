@@ -193,4 +193,37 @@ describe('JobQueue', () => {
     expect(progress).toBe('done');
     jobQueue.destroy();
   });
+  test('activateTimerIf not paused', async () => {
+    const jobQueue = new JobQueue({ paused: true });
+    expect(jobQueue.paused).toBe(true);
+    let progress = 'ready';
+    jobQueue.addJobFromTask(() => {
+      progress = 'done';
+    });
+    await mySleep(0.1);
+    expect(progress).toBe('ready');
+    jobQueue.paused = false;
+    jobQueue.activateTimerIf();
+    await mySleep(0.1);
+    expect(progress).toBe('done');
+    await jobQueue.joinAsync();
+    jobQueue.destroy();
+  });
+  test('activateTimerIf paused', async () => {
+    const jobQueue = new JobQueue({ paused: true });
+    expect(jobQueue.paused).toBe(true);
+    let progress = 'ready';
+    jobQueue.addJobFromTask(() => {
+      progress = 'done';
+    });
+    await mySleep(0.1);
+    expect(progress).toBe('ready');
+    jobQueue.activateTimerIf();
+    await mySleep(0.1);
+    expect(progress).toBe('ready');
+    jobQueue.resume();
+    await jobQueue.joinAsync();
+    expect(progress).toBe('done');
+    jobQueue.destroy();
+  });
 });

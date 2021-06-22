@@ -16,15 +16,7 @@ export default class JobQueue {
   resume() {
     if (this.paused) {
       this.paused = false;
-      const tick = async () => {
-        if (!this.paused) {
-          await this.onTickAsync();
-        }
-        if (!this.paused) {
-          this.timeoutId = setTimeout(tick, 1000 * this.interval);
-        }
-      };
-      tick();
+      this.activateTimerIf();
     }
   }
 
@@ -92,6 +84,18 @@ export default class JobQueue {
     };
 
     return job;
+  }
+
+  activateTimerIf() {
+    const tick = async () => {
+      if (!this.paused) {
+        await this.onTickAsync();
+      }
+      if (!this.paused) {
+        this.timeoutId = setTimeout(tick, 1000 * this.interval);
+      }
+    };
+    tick();
   }
 
   addJob(job) {
