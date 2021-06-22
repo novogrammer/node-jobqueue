@@ -5,6 +5,13 @@ const { performance } = require('perf_hooks');
 
 const mySleep = (time) => new Promise((resolve) => setTimeout(resolve, time * 1000));
 
+// UnhandledPromiseRejectionWarningを取り除く
+// https://github.com/facebook/jest/issues/6028
+function defuse(promise) {
+  promise.catch(() => { });
+  return promise;
+}
+
 describe('JobQueue', () => {
   test('normal job', async () => {
     const jobQueue = new JobQueue();
@@ -51,6 +58,8 @@ describe('JobQueue', () => {
     expect(jobQueue.queue[0]).toBe(job);
   });
   test('abortAll', async () => {
+    // console.error()が発生するのでmockに差し替える
+    jest.spyOn(console, 'error').mockImplementation(jest.fn());
     const jobQueue = new JobQueue();
     let progress = 'ready';
     const job = jobQueue.addJobFromTask(async () => {
@@ -62,6 +71,7 @@ describe('JobQueue', () => {
     expect(job.promise).rejects.toThrow();
     expect(jobQueue.paused).toBe(false);
     expect(progress).toBe('ready');
+    expect(jobQueue.joinAsync()).rejects.toThrow();
   });
   test('makeJob start', async () => {
     const jobQueue = new JobQueue();
@@ -85,8 +95,9 @@ describe('JobQueue', () => {
       progress = 'done';
     });
     expect(progress).toBe('ready');
+    defuse(job.promise);
     expect(job.promise.isPending()).toBe(true);
-    job.abort();
+    job.abort(new Error('some reason'));
     // 非同期に解決されるため
     await mySleep(0.1);
     expect(job.promise.isRejected()).toBe(true);

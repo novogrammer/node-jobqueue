@@ -70,7 +70,7 @@ export default class JobQueue {
       return result;
     };
     // bluebirdのPromiseを使う
-    const promise = Promise.all([taskWrapperAsync()]);
+    const promise = Promise.resolve(taskWrapperAsync());
 
     const job = {
       start: deferred.resolve,
