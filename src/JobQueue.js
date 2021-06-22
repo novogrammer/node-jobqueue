@@ -34,7 +34,7 @@ export default class JobQueue {
     });
   }
 
-  stop() {
+  pause() {
     if (!this.paused) {
       this.paused = true;
       clearTimeout(this.timeoutId);
@@ -44,7 +44,7 @@ export default class JobQueue {
 
   destroy() {
     this.abortAll();
-    this.stop();
+    this.pause();
   }
 
   async onTickAsync() {

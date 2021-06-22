@@ -176,10 +176,10 @@ describe('JobQueue', () => {
     expect(progress).toBe('done');
     jobQueue.destroy();
   });
-  test('stop', async () => {
+  test('pause', async () => {
     const jobQueue = new JobQueue();
     expect(jobQueue.paused).toBe(false);
-    jobQueue.stop();
+    jobQueue.pause();
     expect(jobQueue.paused).toBe(true);
     let progress = 'ready';
     jobQueue.addJobFromTask(() => {
