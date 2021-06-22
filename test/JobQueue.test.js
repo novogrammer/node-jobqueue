@@ -161,7 +161,7 @@ describe('JobQueue', () => {
     expect(endTime - beginTime).toBeCloseTo(1, 0);
     jobQueue.destroy();
   });
-  test('start', async () => {
+  test('resume', async () => {
     const jobQueue = new JobQueue({ paused: true });
     expect(jobQueue.paused).toBe(true);
     let progress = 'ready';
@@ -170,7 +170,7 @@ describe('JobQueue', () => {
     });
     await mySleep(0.1);
     expect(progress).toBe('ready');
-    jobQueue.start();
+    jobQueue.resume();
     expect(jobQueue.paused).toBe(false);
     await jobQueue.joinAsync();
     expect(progress).toBe('done');
@@ -187,7 +187,7 @@ describe('JobQueue', () => {
     });
     await mySleep(0.1);
     expect(progress).toBe('ready');
-    jobQueue.start();
+    jobQueue.resume();
     expect(jobQueue.paused).toBe(false);
     await jobQueue.joinAsync();
     expect(progress).toBe('done');

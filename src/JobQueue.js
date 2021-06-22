@@ -9,11 +9,11 @@ export default class JobQueue {
     this.paused = true;
     this.timeoutId = null;
     if (!paused) {
-      this.start();
+      this.resume();
     }
   }
 
-  start() {
+  resume() {
     if (this.paused) {
       this.paused = false;
       const tick = async () => {
