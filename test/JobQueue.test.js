@@ -19,12 +19,11 @@ describe('JobQueue', () => {
     expect(progress).toBe('done');
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 1);
-    jobQueue.destroy();
   });
   test('add job', () => {
     const jobQueue = new JobQueue();
     // stop execution
-    jobQueue.destroy();
+    jobQueue.pause();
     const job = jobQueue.makeJob(async () => {
       await mySleep(1);
       progress = 'done';
@@ -37,7 +36,7 @@ describe('JobQueue', () => {
   test('add job from task', () => {
     const jobQueue = new JobQueue();
     // stop execution
-    jobQueue.destroy();
+    jobQueue.pause();
     expect(jobQueue.queue.length).toBe(0);
     const job = jobQueue.addJobFromTask(async () => {
       await mySleep(1);
@@ -59,21 +58,6 @@ describe('JobQueue', () => {
     expect(job.promise).rejects.toThrow();
     expect(jobQueue.paused).toBe(false);
     expect(progress).toBe('ready');
-    jobQueue.destroy();
-  });
-  test('destroy', async () => {
-    const jobQueue = new JobQueue();
-    let progress = 'ready';
-    const job = jobQueue.makeJob(async () => {
-      await mySleep(1);
-      progress = 'done';
-    });
-    jobQueue.queue.push(job);
-    expect(jobQueue.paused).toBe(false);
-    jobQueue.destroy();
-    expect(job.promise).rejects.toThrow();
-    expect(jobQueue.paused).toBe(true);
-    expect(progress).toBe('ready');
   });
   test('makeJob start', async () => {
     const jobQueue = new JobQueue();
@@ -88,7 +72,6 @@ describe('JobQueue', () => {
     await job.promise;
     expect(job.promise.isFulfilled()).toBe(true);
     expect(progress).toBe('done');
-    jobQueue.destroy();
   });
   test('makeJob abort', async () => {
     const jobQueue = new JobQueue();
@@ -105,7 +88,6 @@ describe('JobQueue', () => {
     expect(job.promise.isRejected()).toBe(true);
     expect(job.promise).rejects.toThrow();
     expect(progress).toBe('ready');
-    jobQueue.destroy();
   });
   test('joinAsync', async () => {
     const jobQueue = new JobQueue();
@@ -116,7 +98,6 @@ describe('JobQueue', () => {
     await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 0);
-    jobQueue.destroy();
   });
   test('threadsSize 1', async () => {
     const jobQueue = new JobQueue({ threadsSize: 1 });
@@ -129,7 +110,6 @@ describe('JobQueue', () => {
     await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(2, 0);
-    jobQueue.destroy();
   });
   test('threadsSize 2', async () => {
     const jobQueue = new JobQueue({ threadsSize: 2 });
@@ -142,7 +122,6 @@ describe('JobQueue', () => {
     await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 0);
-    jobQueue.destroy();
   });
   test('threadsSize 2 overtake', async () => {
     const jobQueue = new JobQueue({ threadsSize: 2 });
@@ -159,7 +138,6 @@ describe('JobQueue', () => {
     await jobQueue.joinAsync();
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 0);
-    jobQueue.destroy();
   });
   test('resume', async () => {
     const jobQueue = new JobQueue({ paused: true });
@@ -174,7 +152,6 @@ describe('JobQueue', () => {
     expect(jobQueue.paused).toBe(false);
     await jobQueue.joinAsync();
     expect(progress).toBe('done');
-    jobQueue.destroy();
   });
   test('pause', async () => {
     const jobQueue = new JobQueue();
@@ -191,7 +168,6 @@ describe('JobQueue', () => {
     expect(jobQueue.paused).toBe(false);
     await jobQueue.joinAsync();
     expect(progress).toBe('done');
-    jobQueue.destroy();
   });
   test('activateTimerIf not paused', async () => {
     const jobQueue = new JobQueue({ paused: true });
@@ -207,7 +183,6 @@ describe('JobQueue', () => {
     await mySleep(0.1);
     expect(progress).toBe('done');
     await jobQueue.joinAsync();
-    jobQueue.destroy();
   });
   test('activateTimerIf paused', async () => {
     const jobQueue = new JobQueue({ paused: true });
@@ -224,6 +199,5 @@ describe('JobQueue', () => {
     jobQueue.resume();
     await jobQueue.joinAsync();
     expect(progress).toBe('done');
-    jobQueue.destroy();
   });
 });

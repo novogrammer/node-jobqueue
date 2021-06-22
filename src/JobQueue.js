@@ -34,11 +34,6 @@ export default class JobQueue {
     }
   }
 
-  destroy() {
-    this.abortAll();
-    this.pause();
-  }
-
   async onTickAsync() {
     if (this.queue.length > 0) {
       const threadsSize = Math.min(this.threadsSize, this.queue.length);
@@ -100,6 +95,7 @@ export default class JobQueue {
 
   addJob(job) {
     this.queue.push(job);
+    // this.activateTimerIf();
     return job;
   }
 
