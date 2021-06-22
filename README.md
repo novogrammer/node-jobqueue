@@ -19,7 +19,6 @@ async function main(){
   }
   await jobQueue.joinAsync();
   console.log("end");
-  jobQueue.destroy();
 }
 
 main();
