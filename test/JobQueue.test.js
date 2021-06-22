@@ -10,17 +10,21 @@ describe('JobQueue', () => {
     const jobQueue = new JobQueue();
     let progress = 'ready';
     const beginTime = performance.now() / 1000;
+    expect(jobQueue.timeoutId).toBeNull();
     const job = jobQueue.addJobFromTask(async () => {
       await mySleep(1);
       progress = 'done';
     });
+    expect(jobQueue.timeoutId).not.toBeNull();
     expect(progress).toBe('ready');
     await job.promise;
     expect(progress).toBe('done');
     const endTime = performance.now() / 1000;
     expect(endTime - beginTime).toBeCloseTo(1, 1);
+    await mySleep(0.1);
+    expect(jobQueue.timeoutId).toBeNull();
   });
-  test('add job', () => {
+  test('add job', async () => {
     const jobQueue = new JobQueue();
     // stop execution
     jobQueue.pause();
@@ -148,7 +152,9 @@ describe('JobQueue', () => {
     });
     await mySleep(0.1);
     expect(progress).toBe('ready');
+    expect(jobQueue.timeoutId).toBeNull();
     jobQueue.resume();
+    expect(jobQueue.timeoutId).not.toBeNull();
     expect(jobQueue.paused).toBe(false);
     await jobQueue.joinAsync();
     expect(progress).toBe('done');
@@ -179,7 +185,9 @@ describe('JobQueue', () => {
     await mySleep(0.1);
     expect(progress).toBe('ready');
     jobQueue.paused = false;
+    expect(jobQueue.timeoutId).toBeNull();
     jobQueue.activateTimerIf();
+    expect(jobQueue.timeoutId).not.toBeNull();
     await mySleep(0.1);
     expect(progress).toBe('done');
     await jobQueue.joinAsync();
@@ -193,7 +201,9 @@ describe('JobQueue', () => {
     });
     await mySleep(0.1);
     expect(progress).toBe('ready');
+    expect(jobQueue.timeoutId).toBeNull();
     jobQueue.activateTimerIf();
+    expect(jobQueue.timeoutId).toBeNull();
     await mySleep(0.1);
     expect(progress).toBe('ready');
     jobQueue.resume();

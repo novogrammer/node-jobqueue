@@ -82,20 +82,24 @@ export default class JobQueue {
   }
 
   activateTimerIf() {
+    const needsNextTick = () => this.queue.length > 0 && !this.paused && !this.timeoutId;
     const tick = async () => {
+      this.timeoutId = null;
       if (!this.paused) {
         await this.onTickAsync();
       }
-      if (!this.paused) {
+      if (needsNextTick()) {
         this.timeoutId = setTimeout(tick, 1000 * this.interval);
       }
     };
-    tick();
+    if (needsNextTick()) {
+      this.timeoutId = setTimeout(tick, 0);
+    }
   }
 
   addJob(job) {
     this.queue.push(job);
-    // this.activateTimerIf();
+    this.activateTimerIf();
     return job;
   }
 
